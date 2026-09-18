@@ -1,8 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { Modal, ModalHeader, ModalBody } from 'baseui/modal';
-import { Button } from 'baseui/button';
-import { Textarea } from 'baseui/textarea';
-import { colorForCategoria } from '@newale/ui';
+import { useRef, useState } from 'react';
+import { Button, Dialog, Textarea, colorForCategoria } from './ui';
 
 const TABS = [
   { id: 'proyectos', label: 'Proyectos' },
@@ -82,6 +79,7 @@ export function SettingsModal({
   archivedTasks,
   handleDownload,
   handleUpload,
+  returnFocusTo,
 }) {
   const [activeTab, setActiveTab] = useState('proyectos');
   const fileInputRef = useRef(null);
@@ -94,16 +92,8 @@ export function SettingsModal({
   };
 
   return (
-    <Modal
-      onClose={onClose}
-      isOpen={isOpen}
-      overrides={{
-        Dialog: { style: { width: '700px', maxWidth: '92vw' } },
-      }}
-    >
-      <ModalHeader>Configuración</ModalHeader>
-      <ModalBody>
-        <div style={{ display: 'flex', minHeight: '420px', gap: 0, margin: '0 -1px' }}>
+    <Dialog isOpen={isOpen} onClose={onClose} title="Configuración" returnFocusTo={returnFocusTo}>
+      <div style={{ display: 'flex', minHeight: '420px', gap: 0, margin: '0 -1px' }}>
           <div
             style={{
               width: '180px',
@@ -151,12 +141,7 @@ export function SettingsModal({
                             <span style={{ width: 12, height: 12, borderRadius: '50%', background: colorForCategoria(p.label), flexShrink: 0 }} />
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.label}</span>
                           </span>
-                          <Button
-                            onClick={() => deleteProject(p.id)}
-                            kind="tertiary"
-                            size="mini"
-                            overrides={{ BaseButton: { style: { color: '#d32f2f' } } }}
-                          >
+                          <Button onClick={() => deleteProject(p.id)} kind="tertiary" size="mini" danger>
                             Eliminar
                           </Button>
                         </li>
@@ -198,19 +183,12 @@ export function SettingsModal({
 
                 <div>
                   <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>Esquema JSON</h3>
-                  <Textarea
-                    value={TASKS_JSON_SCHEMA}
-                    readOnly
-                    overrides={{
-                      Input: { style: { fontFamily: 'monospace', fontSize: '0.78rem', minHeight: '260px' } },
-                    }}
-                  />
+                  <Textarea value={TASKS_JSON_SCHEMA} readOnly mono />
                 </div>
               </div>
             )}
           </div>
-        </div>
-      </ModalBody>
-    </Modal>
+      </div>
+    </Dialog>
   );
 }

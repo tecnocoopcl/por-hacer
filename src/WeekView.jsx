@@ -1,6 +1,4 @@
-import React from 'react';
-import { Checkbox } from "baseui/checkbox";
-import { colorForCategoria } from '@newale/ui';
+import { Checkbox, colorForCategoria } from './ui';
 import { toDayKey, addDays } from './dates';
 
 export function WeekView({ tasks, weekStart, onPrev, onNext, onToday, onToggleDone, onEdit, onSchedule, getProjectLabel }) {
@@ -86,7 +84,7 @@ function WeekTask({ task, overdue, onToggleDone, onEdit, onSchedule, getProjectL
   const projLabel = getProjectLabel(task);
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", marginBottom: "0.2rem" }}>
-      <Checkbox checked={false} onChange={() => onToggleDone(task)} overrides={{ Root: { style: { marginRight: "0.25rem" } } }}>
+      <Checkbox checked={false} onChange={() => onToggleDone(task)}>
         <span style={{ fontSize: "0.88rem", cursor: "pointer" }} onClick={(e) => { e.preventDefault(); onEdit(task); }}>
           {projLabel && (
             <span style={{ display: "inline-block", lineHeight: 1.4, fontSize: "0.7rem", background: colorForCategoria(projLabel), color: "#1a1a1a", padding: "0 7px", borderRadius: 10, fontWeight: 600, marginRight: "0.35rem" }}>

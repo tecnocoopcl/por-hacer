@@ -12,12 +12,9 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@newale/ui": "file:vendor/newale-ui",
-    "baseui": "^18.2.0",
+    "radix-ui": "^1.6.7",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "styletron-engine-monolithic": "^1.0.0",
-    "styletron-react": "^6.1.1"
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",

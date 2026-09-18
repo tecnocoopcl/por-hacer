@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from "baseui/button";
-import { Input } from "baseui/input";
-import { Checkbox } from "baseui/checkbox";
-import { CategorySelect, colorForCategoria } from '@newale/ui';
+import { useState, useEffect, useRef } from 'react';
+import { Button, Input, Checkbox, CategorySelect, colorForCategoria } from './ui';
 import { SettingsModal } from './SettingsModal';
 import { WeekView } from './WeekView';
 import { toDayKey, parseDayKey, startOfWeek, addDays } from './dates';
@@ -23,6 +20,7 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [view, setView] = useState("lista");
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const settingsButtonRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify([...activeTasks, ...doneTasks, ...archivedTasks]));
@@ -218,7 +216,7 @@ function App() {
     <div className="App">
       <header className="App-header" style={{ position: "relative" }}>
         <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
-          <Button onClick={() => setSettingsOpen(true)} kind="minimal" size="compact" overrides={{ BaseButton: { style: { padding: 0, minWidth: 0 } } }} title="Configuración (⌘.)">
+          <Button ref={settingsButtonRef} onClick={() => setSettingsOpen(true)} kind="minimal" size="compact" icon title="Configuración (⌘.)">
             <SettingsIcon />
           </Button>
         </div>
@@ -249,10 +247,7 @@ function App() {
                 onChange={(e) => setNewTask(e.target.value)}
                 placeholder="Ingresa una tarea"
                 clearOnEscape
-                overrides={{
-                  Input: { style: { width: "100%" }, props: { list: "por-hacer-suggestions" } },
-                  Root: { style: { width: "100%" } },
-                }}
+                list="por-hacer-suggestions"
               />
             </div>
             <Button type="submit">{editTask ? "Guardar" : "Agregar"}</Button>
@@ -328,7 +323,7 @@ function App() {
                 return (
                   <li key={`${task.date}-${index}`} style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>
-                      <Checkbox checked={false} onChange={() => moveTask(task, "done")} overrides={{ Root: { style: { marginRight: "0.5rem" } } }}>
+                      <Checkbox checked={false} onChange={() => moveTask(task, "done")}>
                         <span style={{ display: "block" }}>{task.task}</span>
                         <span style={{ display: "block", marginTop: "0.3rem" }}>
                           {projLabel && (
@@ -367,7 +362,7 @@ function App() {
                   return (
                     <li key={`${task.date}-${index}`} style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem", justifyContent: "space-between", opacity: 0.7 }}>
                       <div style={{ display: "flex", alignItems: "center" }}>
-                        <Checkbox checked={true} onChange={() => moveTask(task, "active")} overrides={{ Root: { style: { marginRight: "0.5rem" } } }}>
+                        <Checkbox checked={true} onChange={() => moveTask(task, "active")}>
                           <span style={{ display: "block", textDecoration: "line-through" }}>{task.task}</span>
                           <span style={{ display: "block", marginTop: "0.3rem" }}>
                             {projLabel && (
@@ -438,6 +433,7 @@ function App() {
         archivedTasks={archivedTasks}
         handleDownload={handleDownload}
         handleUpload={handleUpload}
+        returnFocusTo={settingsButtonRef}
       />
     </div>
   );
@@ -500,8 +496,8 @@ function ProjectChip({ label, color, active, onClick, onDelete }) {
 
 function IconButton({ onClick, label, danger, children }) {
   return (
-    <Button onClick={onClick} kind="tertiary" size="compact" aria-label={label}
-      overrides={{ BaseButton: { style: { marginLeft: "0.5rem", color: danger ? "#d32f2f" : undefined, paddingTop: "4px", paddingBottom: "4px", minWidth: "32px", display: "flex", alignItems: "center", justifyContent: "center" } } }}>
+    <Button onClick={onClick} kind="tertiary" icon danger={danger}
+      aria-label={label} style={{ marginLeft: "0.5rem" }}>
       {children}
     </Button>
   );
