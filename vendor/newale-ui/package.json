@@ -1,0 +1,21 @@
+{
+  "name": "@newale/ui",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c --watch"
+  },
+  "peerDependencies": {
+    "baseui": "*",
+    "react": "*",
+    "styletron-react": "*"
+  },
+  "devDependencies": {
+    "@rollup/plugin-babel": "*",
+    "@rollup/plugin-node-resolve": "*",
+    "rollup": "*"
+  }
+}
