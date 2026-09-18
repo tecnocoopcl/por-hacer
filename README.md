@@ -1,16 +1,42 @@
-# React + Vite
+# Por hacer
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Aplicativo para gestionar una lista de tareas por hacer, con vista de lista y
+vista semanal. Construido con React, Vite y Base Web.
 
-Currently, two official plugins are available:
+Publicado en https://por-hacer.aebn.cl
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Requisitos
 
-## React Compiler
+- Node.js 20 o superior
+- npm
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Desarrollo
 
-## Expanding the Oxlint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+El servidor de desarrollo queda en http://localhost:5173
+
+## Comandos
+
+| Comando | Descripción |
+| --- | --- |
+| `npm run dev` | Servidor de desarrollo con recarga en caliente |
+| `npm run build` | Compila la versión de producción en `dist/` |
+| `npm run preview` | Sirve localmente lo compilado en `dist/` |
+| `npm run lint` | Analiza el código con oxlint |
+| `npm run deploy` | Compila y publica `dist/` en GitHub Pages |
+
+## Despliegue
+
+`npm run deploy` compila el proyecto y empuja `dist/` a la rama `gh-pages`.
+El archivo `public/CNAME` fija el dominio `por-hacer.aebn.cl`, por lo que el
+subdominio debe apuntar por CNAME a `tecnocoopcl.github.io`.
+
+## Dependencias locales
+
+`@newale/ui` no está publicado en npm, por lo que se incluye en `vendor/newale-ui`
+y se resuelve como dependencia `file:`. Si más adelante se publica en un registro,
+basta con reemplazar esa ruta por el rango de versión correspondiente.
