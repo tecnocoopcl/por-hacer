@@ -4,6 +4,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Configurado GitHub Actions: `deploy.yml` compila y publica `dist/` en
+  GitHub Pages en cada push a `main` (origen "GitHub Actions" de Pages, sin
+  rama `gh-pages`); `ci.yml` corre lint y build en cada Pull Request.
+
+### Removed
+
+- Eliminado `gh-pages` y los scripts `predeploy`/`deploy`: el despliegue
+  ahora lo hace el workflow, no una máquina local.
+
 ### Changed
 
 - **Reemplazado baseui por primitivas de Radix.** El bundle baja de 168,9 a

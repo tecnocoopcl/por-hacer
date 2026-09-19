@@ -1,7 +1,7 @@
 # Por hacer
 
 Aplicativo para gestionar una lista de tareas por hacer, con vista de lista y
-vista semanal. Construido con React, Vite y Base Web.
+vista semanal. Construido con React, Vite y Radix.
 
 Publicado en https://por-hacer.aebn.cl
 
@@ -27,16 +27,20 @@ El servidor de desarrollo queda en http://localhost:5173
 | `npm run build` | Compila la versión de producción en `dist/` |
 | `npm run preview` | Sirve localmente lo compilado en `dist/` |
 | `npm run lint` | Analiza el código con oxlint |
-| `npm run deploy` | Compila y publica `dist/` en GitHub Pages |
 
 ## Despliegue
 
-`npm run deploy` compila el proyecto y empuja `dist/` a la rama `gh-pages`.
-El archivo `public/CNAME` fija el dominio `por-hacer.aebn.cl`, por lo que el
+El despliegue es automático: `.github/workflows/deploy.yml` compila y publica
+`dist/` en GitHub Pages en cada push a `main`, usando el origen "GitHub
+Actions" de Pages (Settings → Pages → Build and deployment → Source). El
+archivo `public/CNAME` fija el dominio `por-hacer.aebn.cl`, por lo que el
 subdominio debe apuntar por CNAME a `tecnocoopcl.github.io`.
 
-## Dependencias locales
+`.github/workflows/ci.yml` corre lint y build en cada Pull Request.
 
-`@newale/ui` no está publicado en npm, por lo que se incluye en `vendor/newale-ui`
-y se resuelve como dependencia `file:`. Si más adelante se publica en un registro,
-basta con reemplazar esa ruta por el rango de versión correspondiente.
+## Sistema de diseño
+
+Los componentes compartidos (Button, Input, Checkbox, Dialog, CategorySelect)
+viven en `src/ui`, construidos sobre [Radix](https://www.radix-ui.com/). Ver
+[por-hacer.md](por-hacer.md) para el plan de compartirlos entre aplicaciones
+publicándolos como `@newale/ui`.
