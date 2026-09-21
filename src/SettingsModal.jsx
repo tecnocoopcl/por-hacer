@@ -87,6 +87,7 @@ export function SettingsModal({
   onUploadToPod,
   onDownloadFromPod,
   syncStatus,
+  embedded = false,
 }) {
   const [activeTab, setActiveTab] = useState('proyectos');
   const fileInputRef = useRef(null);
@@ -207,15 +208,20 @@ export function SettingsModal({
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <p style={{ color: '#888', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        Conectado como {solidSession.webId}
+                        {embedded ? 'Tu sesión la gestiona espacio: ' : 'Conectado como '}{solidSession.webId}
                       </p>
                       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <Button onClick={onUploadToPod} size="compact" disabled={syncStatus === 'syncing'}>Subir al Pod</Button>
                         <Button onClick={onDownloadFromPod} size="compact" kind="secondary" disabled={syncStatus === 'syncing'}>Bajar del Pod</Button>
-                        <Button onClick={onLogoutSolid} size="compact" kind="tertiary">Cerrar sesión</Button>
+                        {/* Dentro de espacio la sesión no es nuestra: cerrarla es
+                            cosa del escritorio, no de una de sus aplicaciones. */}
+                        {!embedded && (
+                          <Button onClick={onLogoutSolid} size="compact" kind="tertiary">Cerrar sesión</Button>
+                        )}
                       </div>
                       {syncStatus === 'syncing' && <p style={{ color: '#888', fontSize: '0.85rem', margin: 0 }}>Sincronizando…</p>}
                       {syncStatus === 'success' && <p style={{ color: '#8bc98b', fontSize: '0.85rem', margin: 0 }}>✓ Sincronizado</p>}
+                      {syncStatus === 'conflict' && <p style={{ color: '#e8c07d', fontSize: '0.85rem', margin: 0 }}>El Pod cambió desde la última lectura. Baja los datos primero para no perder lo de otro dispositivo.</p>}
                       {syncStatus === 'error' && <p style={{ color: '#ef9a9a', fontSize: '0.85rem', margin: 0 }}>Error al sincronizar (ver consola)</p>}
                     </div>
                   )}

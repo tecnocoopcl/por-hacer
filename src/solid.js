@@ -3,7 +3,7 @@ import {
   logout,
   handleIncomingRedirect,
   getDefaultSession,
-  fetch as solidFetch,
+  fetch as browserFetch,
 } from '@inrupt/solid-client-authn-browser';
 import {
   getSolidDataset,
@@ -15,6 +15,8 @@ import {
   getThingAll,
   getStringNoLocale,
   getDatetime,
+  getPodUrlAll,
+  removeThing,
   setThing,
 } from '@inrupt/solid-client';
 
@@ -28,11 +30,76 @@ const POR_HACER_PROJECT_SLUG = POR_HACER + 'slug';
 const POR_HACER_PROJECT_ID = POR_HACER + 'projectId';
 const POR_HACER_ARCHIVED_AT = POR_HACER + 'archivedAt';
 
-// Asunción documentada: el storage del pod vive en el mismo origen que el
-// WebID (típico de un Community Solid Server de un solo usuario). No se
-// hace storage discovery genérico (getPodUrlAll) en esta primera versión.
-export function podDataContainerUrl(webId) {
-  return new URL(webId).origin + '/por-hacer-app/data/';
+/**
+ * Por Hacer funciona de dos maneras, y esta es la frontera entre ambas.
+ *
+ * - **Suelta**, en por-hacer.aebn.cl: gestiona su propia sesión Solid con
+ *   solid-client-authn-browser, como hasta ahora.
+ * - **Dentro de espacio**: el escritorio ya tiene la sesión del socio y presta
+ *   un `fetch` autenticado, acotado a la carpeta de esta app en su pod. No hay
+ *   login propio ni hay nada que preguntarle al usuario.
+ *
+ * El resto del archivo no sabe en cuál de los dos está: pide `provider()` y usa
+ * lo que le den. `App.jsx` tampoco cambia.
+ */
+function provider() {
+  const espacio = window.__espacio;
+  if (espacio) {
+    return {
+      embedded: true,
+      fetch: espacio.fetch,
+      // espacio puede estar abierto sin que el socio haya iniciado sesión
+      // todavía: estar embebida no implica tener sesión.
+      session: () => ({
+        isLoggedIn: Boolean(espacio.session),
+        webId: espacio.session?.webId ?? null,
+      }),
+      // La ruta la decide espacio a partir del pim:storage real del socio.
+      container: () => espacio.paths.app('data/'),
+      confirm: (message) => espacio.ui.confirm({ message }),
+    };
+  }
+  return {
+    embedded: false,
+    fetch: browserFetch,
+    session: () => {
+      const session = getDefaultSession();
+      return { isLoggedIn: session.info.isLoggedIn, webId: session.info.webId ?? null };
+    },
+    container: null, // se resuelve con podDataContainerUrl(webId), que es asíncrono
+    confirm: (message) => Promise.resolve(window.confirm(message)),
+  };
+}
+
+export function isEmbedded() {
+  return Boolean(window.__espacio);
+}
+
+export function confirmAction(message) {
+  return provider().confirm(message);
+}
+
+/**
+ * Contenedor de datos de esta app dentro del pod del socio.
+ *
+ * Antes esto concatenaba '/por-hacer-app/data/' al origen del WebID. Funcionaba
+ * por coincidencia, mientras el pod se llamaba igual que la app: con un WebID
+ * como .../usuario-aebn/profile/card#me escribía en el pod de OTRO, no en el del
+ * socio. Ahora se resuelve por pim:storage, que es lo que dice dónde vive el pod.
+ */
+export async function podDataContainerUrl(webId) {
+  const p = provider();
+  if (p.embedded) return p.container();
+
+  const pods = await getPodUrlAll(webId, { fetch: p.fetch });
+  if (pods.length === 0) {
+    throw new Error(
+      `El perfil ${webId} no declara pim:storage, así que no se puede saber dónde ` +
+        'vive tu pod. Hay que añadirlo al perfil.',
+    );
+  }
+  const storage = pods[0].endsWith('/') ? pods[0] : pods[0] + '/';
+  return storage + 'apps/por-hacer/data/';
 }
 
 export async function loginToSolid(oidcIssuer) {
@@ -49,20 +116,64 @@ export async function handleRedirectAfterLogin() {
 }
 
 export function getSolidSession() {
-  const session = getDefaultSession();
-  return { isLoggedIn: session.info.isLoggedIn, webId: session.info.webId ?? null };
+  return provider().session();
 }
 
 export async function logoutFromSolid() {
+  if (provider().embedded) return; // la sesión es de espacio, no nuestra
   await logout();
 }
 
 async function ensureContainer(containerUrl) {
+  const solidFetch = provider().fetch;
   try {
     await getSolidDataset(containerUrl, { fetch: solidFetch });
   } catch (err) {
     if (err.statusCode !== 404) throw err;
     await createContainerAt(containerUrl, { fetch: solidFetch });
+  }
+}
+
+/**
+ * Error de conflicto: alguien cambió el recurso desde la última lectura.
+ * Se distingue para que la UI pueda ofrecer resolverlo en vez de perder datos.
+ */
+export class PodConflictError extends Error {
+  constructor(resource) {
+    super('El Pod cambió desde la última vez que lo leíste.');
+    this.name = 'PodConflictError';
+    this.resource = resource;
+  }
+}
+
+/**
+ * Trae el dataset remoto para poder escribir de forma condicional.
+ *
+ * El detalle que importa: `createSolidDataset()` devuelve un dataset NUEVO, sin
+ * información del recurso remoto, así que `saveSolidDatasetAt` no tiene ETag que
+ * mandar y sobrescribe a ciegas. Editar en otro dispositivo y sincronizar aquí
+ * borraba lo del otro sin avisar.
+ *
+ * Partiendo del dataset traído, solid-client conserva el ETag y envía `If-Match`:
+ * si el recurso cambió, el servidor responde 412 en vez de pisarlo.
+ */
+async function loadForWrite(url) {
+  try {
+    const remote = await getSolidDataset(url, { fetch: provider().fetch });
+    // Se vacía el contenido pero se conserva la identidad del recurso.
+    return getThingAll(remote).reduce((acc, thing) => removeThing(acc, thing), remote);
+  } catch (err) {
+    if (err.statusCode === 404) return createSolidDataset();
+    throw err;
+  }
+}
+
+async function saveConditionally(url, dataset) {
+  try {
+    await saveSolidDatasetAt(url, dataset, { fetch: provider().fetch });
+  } catch (err) {
+    if (err.statusCode === 412) throw new PodConflictError(url);
+    throw err;
   }
 }
 
@@ -77,7 +188,7 @@ export async function fetchTasksFromPod(containerUrl) {
   const url = containerUrl + 'tasks.ttl';
   let dataset;
   try {
-    dataset = await getSolidDataset(url, { fetch: solidFetch });
+    dataset = await getSolidDataset(url, { fetch: provider().fetch });
   } catch (err) {
     if (err.statusCode === 404) return [];
     throw err;
@@ -108,7 +219,7 @@ export async function saveTasksToPod(containerUrl, tasks) {
   requireLoggedIn();
   await ensureContainer(containerUrl);
   const url = containerUrl + 'tasks.ttl';
-  let dataset = createSolidDataset();
+  let dataset = await loadForWrite(url);
   tasks.forEach((t, i) => {
     let builder = buildThing(createThing({ name: 'task-' + (t.id ?? i) }))
       .setDatetime(SCHEMA_DATE_CREATED, new Date(t.date))
@@ -120,7 +231,7 @@ export async function saveTasksToPod(containerUrl, tasks) {
     if (t.state === 'archived' && t.archivedAt) builder = builder.setDatetime(POR_HACER_ARCHIVED_AT, new Date(t.archivedAt));
     dataset = setThing(dataset, builder.build());
   });
-  await saveSolidDatasetAt(url, dataset, { fetch: solidFetch });
+  await saveConditionally(url, dataset);
 }
 
 export async function fetchProjectsFromPod(containerUrl) {
@@ -128,7 +239,7 @@ export async function fetchProjectsFromPod(containerUrl) {
   const url = containerUrl + 'projects.ttl';
   let dataset;
   try {
-    dataset = await getSolidDataset(url, { fetch: solidFetch });
+    dataset = await getSolidDataset(url, { fetch: provider().fetch });
   } catch (err) {
     if (err.statusCode === 404) return [];
     throw err;
@@ -143,7 +254,7 @@ export async function saveProjectsToPod(containerUrl, projects) {
   requireLoggedIn();
   await ensureContainer(containerUrl);
   const url = containerUrl + 'projects.ttl';
-  let dataset = createSolidDataset();
+  let dataset = await loadForWrite(url);
   projects.forEach((p, i) => {
     const thing = buildThing(createThing({ name: 'project-' + (p.uuid ?? i) }))
       .setStringNoLocale(POR_HACER_PROJECT_SLUG, p.id)
@@ -151,5 +262,5 @@ export async function saveProjectsToPod(containerUrl, projects) {
       .build();
     dataset = setThing(dataset, thing);
   });
-  await saveSolidDatasetAt(url, dataset, { fetch: solidFetch });
+  await saveConditionally(url, dataset);
 }

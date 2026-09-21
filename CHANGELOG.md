@@ -4,6 +4,37 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Por Hacer puede alojarse dentro de **espacio**, el escritorio de la
+  cooperativa. Embebida, no hace login propio: espacio le presta la sesión del
+  socio y un `fetch` acotado a `apps/por-hacer/` en su pod. Desplegada suelta en
+  `por-hacer.aebn.cl` funciona exactamente como hasta ahora — el mismo build
+  sirve para los dos casos.
+
+### Fixed
+
+- **Escribía en el pod equivocado.** `podDataContainerUrl` concatenaba
+  `/por-hacer-app/data/` al origen del WebID. Funcionaba por coincidencia,
+  mientras el pod se llamaba igual que la app; con un WebID como
+  `.../usuario-aebn/profile/card#me` escribía en un pod ajeno. Ahora se resuelve
+  por `pim:storage` con `getPodUrlAll`, que es lo que dice dónde vive el pod.
+- **"Subir al Pod" podía perder datos sin avisar.** Construía el dataset con
+  `createSolidDataset()`, que crea un recurso nuevo sin ETag, así que
+  `saveSolidDatasetAt` sobrescribía a ciegas: lo editado en otro dispositivo
+  desaparecía. Ahora se parte del dataset remoto, con lo que la escritura es
+  condicional (`If-Match`) y un cambio ajeno produce un aviso de conflicto en
+  vez de una pérdida silenciosa.
+
+### Note
+
+`@tecnocoop/espacio-sdk` todavía **no está publicado en npm**, así que `npm ci`
+fallará en CI hasta que lo esté. Para trabajar en local:
+
+```bash
+npm link ../espacio/packages/sdk
+```
+
 ## [0.3.0] — 2026-09-21
 
 ### Added

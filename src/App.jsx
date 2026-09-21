@@ -8,6 +8,9 @@ import {
   loginToSolid,
   logoutFromSolid,
   podDataContainerUrl,
+  confirmAction,
+  isEmbedded,
+  PodConflictError,
   fetchTasksFromPod,
   saveTasksToPod,
   fetchProjectsFromPod,
@@ -197,6 +200,10 @@ function App() {
   };
 
   const connectToSolid = async () => {
+    // Dentro de espacio no hay nada que conectar: la sesión ya es del socio, y
+    // window.prompt devolvería null en silencio porque el iframe no tiene
+    // allow-modals. El botón ni siquiera se muestra (ver SettingsModal).
+    if (isEmbedded()) return;
     const oidcIssuer = window.prompt("URL de tu Solid Pod / proveedor OIDC:", "https://pods-rpi-tc.aebn.cl");
     if (!oidcIssuer) return;
     await loginToSolid(oidcIssuer);
@@ -209,25 +216,25 @@ function App() {
 
   const uploadToPod = async () => {
     if (!solidSession.webId) return;
-    if (!window.confirm("Esto reemplazará las tareas y proyectos del Pod con los datos locales. ¿Continuar?")) return;
+    if (!(await confirmAction("Esto reemplazará las tareas y proyectos del Pod con los datos locales. ¿Continuar?"))) return;
     setSyncStatus("syncing");
     try {
-      const containerUrl = podDataContainerUrl(solidSession.webId);
+      const containerUrl = await podDataContainerUrl(solidSession.webId);
       await saveProjectsToPod(containerUrl, projects);
       await saveTasksToPod(containerUrl, [...activeTasks, ...doneTasks, ...archivedTasks]);
       setSyncStatus("success");
     } catch (err) {
       console.error(err);
-      setSyncStatus("error");
+      setSyncStatus(err instanceof PodConflictError ? "conflict" : "error");
     }
   };
 
   const downloadFromPod = async () => {
     if (!solidSession.webId) return;
-    if (!window.confirm("Esto reemplazará las tareas y proyectos locales con los datos del Pod. ¿Continuar?")) return;
+    if (!(await confirmAction("Esto reemplazará las tareas y proyectos locales con los datos del Pod. ¿Continuar?"))) return;
     setSyncStatus("syncing");
     try {
-      const containerUrl = podDataContainerUrl(solidSession.webId);
+      const containerUrl = await podDataContainerUrl(solidSession.webId);
       const [podProjects, podTasks] = await Promise.all([
         fetchProjectsFromPod(containerUrl),
         fetchTasksFromPod(containerUrl),
@@ -502,6 +509,7 @@ function App() {
         handleDownload={handleDownload}
         handleUpload={handleUpload}
         returnFocusTo={settingsButtonRef}
+        embedded={isEmbedded()}
         solidSession={solidSession}
         onConnectSolid={connectToSolid}
         onLogoutSolid={disconnectFromSolid}
