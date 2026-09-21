@@ -6,6 +6,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ### Added
 
+- Sincronización manual con un Pod Solid propio: login Solid-OIDC
+  (`@inrupt/solid-client-authn-browser`) y lectura/escritura de tareas y
+  proyectos como RDF/Turtle (`@inrupt/solid-client`) en
+  `<pod>/por-hacer-app/data/{tasks,projects}.ttl`. Botones "Conectar con
+  Solid Pod", "Subir al Pod" y "Bajar del Pod" en Ajustes → Información.
+  Cada tarea y proyecto ahora tiene un `id`/`uuid` estable (se asigna al
+  vuelo a los datos existentes en `localStorage`).
 - Configurado GitHub Actions: `deploy.yml` compila y publica `dist/` en
   GitHub Pages en cada push a `main` (origen "GitHub Actions" de Pages, sin
   rama `gh-pages`); `ci.yml` corre lint y build en cada Pull Request.
