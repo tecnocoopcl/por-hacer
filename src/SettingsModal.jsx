@@ -200,7 +200,7 @@ export function SettingsModal({
                 <div>
                   <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem' }}>Solid Pod</h3>
                   <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 0.75rem 0' }}>
-                    Sincronizá tus tareas y proyectos con tu Pod Solid. La sincronización es manual: cada botón sobreescribe por completo un lado con el otro.
+                    Sincroniza tus tareas y proyectos con tu Pod Solid. La sincronización es manual: cada botón sobreescribe por completo un lado con el otro.
                   </p>
                   {!solidSession?.isLoggedIn ? (
                     <Button onClick={onConnectSolid} size="compact">Conectar con Solid Pod</Button>
