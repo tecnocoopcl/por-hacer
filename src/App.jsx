@@ -3,6 +3,16 @@ import { Button, Input, Checkbox, CategorySelect, colorForCategoria } from './ui
 import { SettingsModal } from './SettingsModal';
 import { WeekView } from './WeekView';
 import { toDayKey, parseDayKey, startOfWeek, addDays } from './dates';
+import {
+  handleRedirectAfterLogin,
+  loginToSolid,
+  logoutFromSolid,
+  podDataContainerUrl,
+  fetchTasksFromPod,
+  saveTasksToPod,
+  fetchProjectsFromPod,
+  saveProjectsToPod,
+} from './solid';
 import './App.css';
 
 function App() {
@@ -13,13 +23,18 @@ function App() {
   const [taskDate, setTaskDate] = useState("");
   const [editTask, setEditTask] = useState(null);
   const [projects, setProjects] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("projects")) ?? []; } catch { return []; }
+    try {
+      const saved = JSON.parse(localStorage.getItem("projects")) ?? [];
+      return saved.map(p => p.uuid ? p : { ...p, uuid: crypto.randomUUID() });
+    } catch { return []; }
   });
   const [selectedProject, setSelectedProject] = useState(null);
   const [taskProject, setTaskProject] = useState([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [view, setView] = useState("lista");
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const [solidSession, setSolidSession] = useState({ isLoggedIn: false, webId: null });
+  const [syncStatus, setSyncStatus] = useState(null);
   const settingsButtonRef = useRef(null);
 
   useEffect(() => {
@@ -29,6 +44,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("projects", JSON.stringify(projects));
   }, [projects]);
+
+  useEffect(() => {
+    handleRedirectAfterLogin().then(setSolidSession);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -61,7 +80,7 @@ function App() {
   const ensureProject = (label) => {
     const id = label.toLowerCase();
     if (!projects.find(p => p.id === id)) {
-      setProjects(prev => [...prev, { id, label }]);
+      setProjects(prev => [...prev, { id, label, uuid: crypto.randomUUID() }]);
     }
     return id;
   };
@@ -93,6 +112,7 @@ function App() {
       ));
     } else {
       setActiveTasks(prev => [...prev, {
+        id: crypto.randomUUID(),
         date: new Date().toISOString(),
         state: "active",
         task: newTask.trim(),
@@ -164,7 +184,8 @@ function App() {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const imported = JSON.parse(event.target.result);
+        const imported = JSON.parse(event.target.result)
+          .map(t => t.id ? t : { ...t, id: crypto.randomUUID() });
         setActiveTasks(imported.filter(t => t.state !== "done" && t.state !== "archived"));
         setDoneTasks(imported.filter(t => t.state === "done"));
         setArchivedTasks(imported.filter(t => t.state === "archived"));
@@ -173,6 +194,53 @@ function App() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const connectToSolid = async () => {
+    const oidcIssuer = window.prompt("URL de tu Solid Pod / proveedor OIDC:", "https://pods-rpi-tc.aebn.cl");
+    if (!oidcIssuer) return;
+    await loginToSolid(oidcIssuer);
+  };
+
+  const disconnectFromSolid = async () => {
+    await logoutFromSolid();
+    setSolidSession({ isLoggedIn: false, webId: null });
+  };
+
+  const uploadToPod = async () => {
+    if (!solidSession.webId) return;
+    if (!window.confirm("Esto reemplazará las tareas y proyectos del Pod con los datos locales. ¿Continuar?")) return;
+    setSyncStatus("syncing");
+    try {
+      const containerUrl = podDataContainerUrl(solidSession.webId);
+      await saveProjectsToPod(containerUrl, projects);
+      await saveTasksToPod(containerUrl, [...activeTasks, ...doneTasks, ...archivedTasks]);
+      setSyncStatus("success");
+    } catch (err) {
+      console.error(err);
+      setSyncStatus("error");
+    }
+  };
+
+  const downloadFromPod = async () => {
+    if (!solidSession.webId) return;
+    if (!window.confirm("Esto reemplazará las tareas y proyectos locales con los datos del Pod. ¿Continuar?")) return;
+    setSyncStatus("syncing");
+    try {
+      const containerUrl = podDataContainerUrl(solidSession.webId);
+      const [podProjects, podTasks] = await Promise.all([
+        fetchProjectsFromPod(containerUrl),
+        fetchTasksFromPod(containerUrl),
+      ]);
+      setProjects(podProjects.map(p => ({ ...p, uuid: p.uuid ?? crypto.randomUUID() })));
+      setActiveTasks(podTasks.filter(t => t.state !== "done" && t.state !== "archived"));
+      setDoneTasks(podTasks.filter(t => t.state === "done"));
+      setArchivedTasks(podTasks.filter(t => t.state === "archived"));
+      setSyncStatus("success");
+    } catch (err) {
+      console.error(err);
+      setSyncStatus("error");
+    }
   };
 
   const deleteProject = (id) => {
@@ -434,6 +502,12 @@ function App() {
         handleDownload={handleDownload}
         handleUpload={handleUpload}
         returnFocusTo={settingsButtonRef}
+        solidSession={solidSession}
+        onConnectSolid={connectToSolid}
+        onLogoutSolid={disconnectFromSolid}
+        onUploadToPod={uploadToPod}
+        onDownloadFromPod={downloadFromPod}
+        syncStatus={syncStatus}
       />
     </div>
   );
@@ -442,7 +516,7 @@ function App() {
 function loadTasks(predicate) {
   try {
     const saved = JSON.parse(localStorage.getItem("tasks")) ?? [];
-    return saved.filter(predicate);
+    return saved.filter(predicate).map(t => t.id ? t : { ...t, id: crypto.randomUUID() });
   } catch { return []; }
 }
 

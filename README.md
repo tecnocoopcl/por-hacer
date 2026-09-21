@@ -42,5 +42,5 @@ subdominio debe apuntar por CNAME a `tecnocoopcl.github.io`.
 
 Los componentes compartidos (Button, Input, Checkbox, Dialog, CategorySelect)
 viven en `src/ui`, construidos sobre [Radix](https://www.radix-ui.com/). Ver
-[por-hacer.md](por-hacer.md) para el plan de compartirlos entre aplicaciones
+[POR-HACER.md](POR-HACER.md) para el plan de compartirlos entre aplicaciones
 publicándolos como `@newale/ui`.

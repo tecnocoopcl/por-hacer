@@ -4,6 +4,7 @@ import { Button, Dialog, Textarea, colorForCategoria } from './ui';
 const TABS = [
   { id: 'proyectos', label: 'Proyectos' },
   { id: 'informacion', label: 'Información' },
+  { id: 'solid', label: 'Solid Pod' },
 ];
 
 const TASKS_JSON_SCHEMA = JSON.stringify({
@@ -80,6 +81,12 @@ export function SettingsModal({
   handleDownload,
   handleUpload,
   returnFocusTo,
+  solidSession,
+  onConnectSolid,
+  onLogoutSolid,
+  onUploadToPod,
+  onDownloadFromPod,
+  syncStatus,
 }) {
   const [activeTab, setActiveTab] = useState('proyectos');
   const fileInputRef = useRef(null);
@@ -184,6 +191,34 @@ export function SettingsModal({
                 <div>
                   <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>Esquema JSON</h3>
                   <Textarea value={TASKS_JSON_SCHEMA} readOnly mono />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'solid' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem' }}>Solid Pod</h3>
+                  <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 0.75rem 0' }}>
+                    Sincroniza tus tareas y proyectos con tu Pod Solid. La sincronización es manual: cada botón sobreescribe por completo un lado con el otro.
+                  </p>
+                  {!solidSession?.isLoggedIn ? (
+                    <Button onClick={onConnectSolid} size="compact">Conectar con Solid Pod</Button>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <p style={{ color: '#888', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        Conectado como {solidSession.webId}
+                      </p>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <Button onClick={onUploadToPod} size="compact" disabled={syncStatus === 'syncing'}>Subir al Pod</Button>
+                        <Button onClick={onDownloadFromPod} size="compact" kind="secondary" disabled={syncStatus === 'syncing'}>Bajar del Pod</Button>
+                        <Button onClick={onLogoutSolid} size="compact" kind="tertiary">Cerrar sesión</Button>
+                      </div>
+                      {syncStatus === 'syncing' && <p style={{ color: '#888', fontSize: '0.85rem', margin: 0 }}>Sincronizando…</p>}
+                      {syncStatus === 'success' && <p style={{ color: '#8bc98b', fontSize: '0.85rem', margin: 0 }}>✓ Sincronizado</p>}
+                      {syncStatus === 'error' && <p style={{ color: '#ef9a9a', fontSize: '0.85rem', margin: 0 }}>Error al sincronizar (ver consola)</p>}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

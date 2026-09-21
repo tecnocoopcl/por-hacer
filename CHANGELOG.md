@@ -6,6 +6,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ### Added
 
+- Sincronización manual con un Pod Solid propio: login Solid-OIDC
+  (`@inrupt/solid-client-authn-browser`) y lectura/escritura de tareas y
+  proyectos como RDF/Turtle (`@inrupt/solid-client`) en
+  `<pod>/por-hacer-app/data/{tasks,projects}.ttl`. Botones "Conectar con
+  Solid Pod", "Subir al Pod" y "Bajar del Pod" en Ajustes → Información.
+  Cada tarea y proyecto ahora tiene un `id`/`uuid` estable (se asigna al
+  vuelo a los datos existentes en `localStorage`).
 - Configurado GitHub Actions: `deploy.yml` compila y publica `dist/` en
   GitHub Pages en cada push a `main` (origen "GitHub Actions" de Pages, sin
   rama `gh-pages`); `ci.yml` corre lint y build en cada Pull Request.
@@ -21,7 +28,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   101,5 kB gzip. `src/ui` reúne ahora Button, Input, Textarea, Checkbox,
   Dialog y CategorySelect con estilos propios en CSS plano. Radix no trae
   combobox, así que `CategorySelect` (creatable) se reconstruyó sobre
-  `Popover`. Ver [por-hacer.md](por-hacer.md) para lo que falta migrar en las
+  `Popover`. Ver [POR-HACER.md](POR-HACER.md) para lo que falta migrar en las
   otras aplicaciones.
 - Actualizado `baseui` de la pre-release `0.0.0-next-*` al canal estable
   `18.2.0`, cuyo peer de React ya admite `>=18`. Elimina el `overrides` y
