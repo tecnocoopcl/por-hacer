@@ -4,6 +4,7 @@ import { Button, Dialog, Textarea, colorForCategoria } from './ui';
 const TABS = [
   { id: 'proyectos', label: 'Proyectos' },
   { id: 'informacion', label: 'Información' },
+  { id: 'solid', label: 'Solid Pod' },
 ];
 
 const TASKS_JSON_SCHEMA = JSON.stringify({
@@ -191,9 +192,16 @@ export function SettingsModal({
                   <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>Esquema JSON</h3>
                   <Textarea value={TASKS_JSON_SCHEMA} readOnly mono />
                 </div>
+              </div>
+            )}
 
+            {activeTab === 'solid' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
-                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>Solid Pod</h3>
+                  <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem' }}>Solid Pod</h3>
+                  <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 0.75rem 0' }}>
+                    Sincronizá tus tareas y proyectos con tu Pod Solid. La sincronización es manual: cada botón sobreescribe por completo un lado con el otro.
+                  </p>
                   {!solidSession?.isLoggedIn ? (
                     <Button onClick={onConnectSolid} size="compact">Conectar con Solid Pod</Button>
                   ) : (
