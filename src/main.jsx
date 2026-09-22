@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { connect } from '@tecnocoop/espacio-sdk';
+import { connect } from './vendor/espacio-sdk/index.js';
 
 import './index.css';
 import App from './App';

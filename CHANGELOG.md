@@ -28,12 +28,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ### Note
 
-`@tecnocoop/espacio-sdk` todavía **no está publicado en npm**, así que `npm ci`
-fallará en CI hasta que lo esté. Para trabajar en local:
-
-```bash
-npm link ../espacio/packages/sdk
-```
+`@tecnocoop/espacio-sdk` se vendoriza en `src/vendor/espacio-sdk/` en vez de
+depender de npm: es información interna de la cooperativa, no algo para el
+registro público, y todavía no hay un registro privado montado. Es código sin
+dependencias y sin build, así que copiarlo no tiene coste real; cuando exista
+un registro privado (npm de pago, GitHub Packages privado, o un Verdaccio
+propio), vuelve a ser una dependencia normal y este directorio desaparece. Ver
+`src/vendor/espacio-sdk/README.md` para cómo actualizarla.
 
 ## [0.3.0] — 2026-09-21
 
