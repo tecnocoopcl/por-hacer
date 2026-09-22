@@ -16,6 +16,15 @@
   <body>
     <noscript>Necesitas habilitar JavaScript para usar esta aplicación.</noscript>
     <div id="root"></div>
+    <script>
+      // @inrupt/solid-client depende de cross-fetch, cuyo ponyfill exporta
+      // window.fetch SIN enlazar (exports.fetch = ctx.fetch). En WebKit
+      // (Safari) invocar ese fetch desligado lanza "TypeError: Can only call
+      // Window.fetch on instances of Window". Se enlaza acá, antes de que se
+      // evalúe cualquier módulo, para que cross-fetch capture ya la versión
+      // enlazada.
+      if (window.fetch) window.fetch = window.fetch.bind(window);
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

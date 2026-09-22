@@ -25,6 +25,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   desaparecía. Ahora se parte del dataset remoto, con lo que la escritura es
   condicional (`If-Match`) y un cambio ajeno produce un aviso de conflicto en
   vez de una pérdida silenciosa.
+- **`TypeError: Can only call Window.fetch on instances of Window`** (o
+  `Illegal invocation` en Chromium) al sincronizar. `getPodUrlAll` de
+  `@inrupt/solid-client@1.23.1` ignora el `fetch` que se le pasa para el
+  primer fetch del documento WebID y usa el `fetch` crudo de `cross-fetch`,
+  cuyo ponyfill exporta `window.fetch` sin enlazar (`exports.fetch =
+  ctx.fetch`, sin `.bind`). Se enlaza `window.fetch` a sí mismo en un script
+  inline en `index.html`, antes de que se evalúe cualquier módulo, para que
+  `cross-fetch` capture ya la versión enlazada.
 
 ### Note
 
