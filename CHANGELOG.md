@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-09-22
+
 ### Added
 
 - Por Hacer puede alojarse dentro de **espacio**, el escritorio de la
@@ -33,6 +35,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   ctx.fetch`, sin `.bind`). Se enlaza `window.fetch` a sí mismo en un script
   inline en `index.html`, antes de que se evalúe cualquier módulo, para que
   `cross-fetch` capture ya la versión enlazada.
+- **`Failed to construct 'URL': Invalid base URL`** al "Bajar del Pod" estando
+  embebida en espacio. El `Response` que reconstruye `espacio.fetch` nunca
+  traía `.url` fijado (un `Response` armado a mano trae `''` por defecto), y
+  `@inrupt/solid-client` necesita esa URL para resolver referencias relativas
+  dentro del propio documento Turtle (`<>` = "este documento"). Se corrigió en
+  `espacio/packages/sdk` (con test de regresión ahí) y se revendorizó acá.
 
 ### Note
 
