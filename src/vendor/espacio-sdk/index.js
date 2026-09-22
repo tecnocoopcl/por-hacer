@@ -65,7 +65,14 @@ export function connect({ timeout = 5000 } = {}) {
   })
 }
 
-function buildApi(port, hello) {
+/**
+ * Construye el objeto `Espacio` sobre un `MessagePort` ya abierto.
+ *
+ * Exportada (además de usarse internamente desde `connect()`) para poder
+ * probar `espacioFetch` con un `MessageChannel` real de Node, sin necesitar
+ * `window`/`document`: no es parte de la API pública pensada para consumidores.
+ */
+export function buildApi(port, hello) {
   let nextId = 1
   const pending = new Map()
   const listeners = new Map()
@@ -125,11 +132,22 @@ function buildApi(port, hello) {
 
     // 204 y 304 no admiten cuerpo: construir el Response con uno lanzaría.
     const nullBody = result.status === 204 || result.status === 304 || result.status < 200
-    return new Response(nullBody ? null : (result.body ?? null), {
+    const response = new Response(nullBody ? null : (result.body ?? null), {
       status: result.status,
       statusText: result.statusText,
       headers: new Headers(result.headers),
     })
+
+    // Un Response construido a mano tiene `.url === ''` — es de solo lectura
+    // salvo por defineProperty. @inrupt/solid-client la necesita para resolver
+    // referencias relativas del propio documento (`<>` en el Turtle): sin
+    // esto, cualquier lectura del pod revienta con
+    // "Failed to construct 'URL': Invalid base URL" en cuanto el parser
+    // intenta resolver algo contra ''. `result.url` es la URL final que
+    // resolvió main (por si hubo redirección); si el main antiguo no la manda
+    // todavía, se cae a la que se pidió.
+    Object.defineProperty(response, 'url', { value: result.url ?? request.url, configurable: true })
+    return response
   }
 
   const storage = hello.session?.storageUrl ?? null
