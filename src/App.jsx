@@ -364,11 +364,12 @@ function App() {
 
         {projects.length > 0 && (
           <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", width: "100%", marginTop: "0.75rem", marginBottom: "1rem" }}>
-            <ProjectChip label="Todos" active={selectedProject === null} onClick={() => selectProject(null)} />
+            <ProjectChip label="Todos" count={activeTasks.length} active={selectedProject === null} onClick={() => selectProject(null)} />
             {projects.map(p => (
               <ProjectChip
                 key={p.id}
                 label={p.label}
+                count={activeTasks.filter(t => t.projectId === p.id).length}
                 color={colorForCategoria(p.label)}
                 active={selectedProject === p.id}
                 onClick={() => selectProject(p.id === selectedProject ? null : p.id)}
@@ -565,10 +566,13 @@ function ViewTab({ label, active, onClick }) {
   );
 }
 
-function ProjectChip({ label, color, active, onClick, onDelete }) {
+function ProjectChip({ label, count, color, active, onClick, onDelete }) {
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px 3px 10px", borderRadius: 16, border: "1px solid #555", background: active ? (color || "#fff") : "transparent", color: active ? "#1a1a1a" : "#fff", cursor: "pointer", fontSize: "0.82rem", fontWeight: active ? 600 : 400 }}>
-      <span onClick={onClick}>{label}</span>
+      <span onClick={onClick}>
+        {label}
+        {count != null && <span style={{ marginLeft: "5px", opacity: 0.6, fontVariantNumeric: "tabular-nums" }}>{count}</span>}
+      </span>
       {onDelete && (
         <button onClick={(e) => { e.stopPropagation(); onDelete(); }} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: "0 0 0 2px", lineHeight: 1, opacity: 0.6, fontSize: "0.9rem" }} title="Eliminar proyecto">×</button>
       )}
