@@ -4,6 +4,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-09-30
+
+### Added
+
+- Cada tab de proyecto muestra cuántas tareas pendientes tiene, y "Todos" el
+  total. Se cuentan solo las de la lista por hacer (no las completadas ni las
+  archivadas), igual que el número del título.
+
 ## [1.0.0] — 2026-09-22
 
 ### Added
