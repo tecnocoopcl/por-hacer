@@ -91,7 +91,12 @@ export async function podDataContainerUrl(webId) {
   const p = provider();
   if (p.embedded) return p.container();
 
-  const pods = await getPodUrlAll(webId, { fetch: p.fetch });
+  // El perfil se lee aquí y se le pasa ya leído: getPodUrlAll de
+  // solid-client 1.23 lo pide con el fetch de cross-fetch, que en el
+  // navegador es window.fetch sin su `this`, y revienta con "Can only call
+  // Window.fetch on instances of Window" (Safari) o "Illegal invocation".
+  const webIdProfile = await getSolidDataset(webId, { fetch: p.fetch });
+  const pods = await getPodUrlAll(webId, { fetch: p.fetch, webIdProfile });
   if (pods.length === 0) {
     throw new Error(
       `El perfil ${webId} no declara pim:storage, así que no se puede saber dónde ` +
