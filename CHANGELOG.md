@@ -4,6 +4,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.2] — 2026-10-06
+
+### Fixed
+
+- «Conectar con Solid Pod» fallaba con «Client registration failed» si se
+  escribía la dirección del pod (`…/tu-cuenta/`) o el WebID: se usaba tal
+  cual como proveedor de identidad, y `<pod>/.well-known/openid-configuration`
+  responde 401. Ahora acepta el WebID (el proveedor sale de su
+  `solid:oidcIssuer`), la dirección del pod o la del proveedor, y si no
+  puede conectar lo dice en vez de fallar en silencio.
+
 ## [1.2.1] — 2026-10-06
 
 ### Fixed
