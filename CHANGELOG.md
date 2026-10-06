@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-10-06
+
+### Fixed
+
+- Con la sesión propia (fuera de espacio), subir o bajar del pod fallaba
+  con «Can only call Window.fetch on instances of Window»: `getPodUrlAll` de
+  solid-client 1.23 pide el perfil con el `fetch` de cross-fetch, que en el
+  navegador es `window.fetch` sin enlazar. Ahora el perfil se lee con el
+  `fetch` de la sesión y se le pasa ya leído.
+
 ## [1.2.0] — 2026-10-06
 
 ### Changed
