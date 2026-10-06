@@ -4,6 +4,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Los datos pasan de `apps/por-hacer/data/` a `Aplicaciones/por-hacer/data/`,
+  la convención de carpetas de espacio. Suelta, la app copia `tasks.ttl` y
+  `projects.ttl` la primera vez que no los encuentra en la nueva, sin borrar
+  la vieja; dentro de espacio los copia el escritorio.
+
 ## [1.1.0] — 2026-09-30
 
 ### Added

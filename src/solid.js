@@ -99,7 +99,41 @@ export async function podDataContainerUrl(webId) {
     );
   }
   const storage = pods[0].endsWith('/') ? pods[0] : pods[0] + '/';
-  return storage + 'apps/por-hacer/data/';
+  const container = storage + 'Aplicaciones/por-hacer/data/';
+  await migrarDesdeApps(storage + 'apps/por-hacer/data/', container);
+  return container;
+}
+
+/**
+ * Los datos vivían en `apps/por-hacer/data/` y ahora en
+ * `Aplicaciones/por-hacer/data/`, la convención de carpetas de espacio. Dentro
+ * de espacio los copia el escritorio; suelta, la app copia sus dos archivos la
+ * primera vez que no los encuentra en la carpeta nueva. Copia y no mueve, y
+ * nunca pisa lo que ya esté en la nueva (`If-None-Match: *`).
+ */
+const ARCHIVOS = ['tasks.ttl', 'projects.ttl'];
+let migrada = null;
+
+function migrarDesdeApps(viejo, nuevo) {
+  migrada ??= (async () => {
+    const solidFetch = provider().fetch;
+    for (const nombre of ARCHIVOS) {
+      try {
+        if ((await solidFetch(nuevo + nombre, { method: 'HEAD' })).ok) continue;
+        const res = await solidFetch(viejo + nombre);
+        if (!res.ok) continue;
+        await solidFetch(nuevo + nombre, {
+          method: 'PUT',
+          headers: { 'Content-Type': res.headers.get('Content-Type') ?? 'text/turtle', 'If-None-Match': '*' },
+          body: await res.text(),
+        });
+      } catch (err) {
+        // Sin copia la app funciona igual: el socio sube lo local de nuevo.
+        console.warn(`No se pudo copiar ${nombre} a la carpeta nueva: ${err.message}`);
+      }
+    }
+  })();
+  return migrada;
 }
 
 export async function loginToSolid(oidcIssuer) {
