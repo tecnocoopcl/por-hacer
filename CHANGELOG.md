@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-10-06
+
 ### Changed
 
 - Los datos pasan de `apps/por-hacer/data/` a `Aplicaciones/por-hacer/data/`,
