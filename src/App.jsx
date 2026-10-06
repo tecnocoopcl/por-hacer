@@ -204,9 +204,14 @@ function App() {
     // window.prompt devolvería null en silencio porque el iframe no tiene
     // allow-modals. El botón ni siquiera se muestra (ver SettingsModal).
     if (isEmbedded()) return;
-    const oidcIssuer = window.prompt("URL de tu Solid Pod / proveedor OIDC:", "https://pods-rpi-tc.aebn.cl");
-    if (!oidcIssuer) return;
-    await loginToSolid(oidcIssuer);
+    const entrada = window.prompt("Tu WebID, tu Solid Pod o tu proveedor de identidad:", "https://pods-rpi-tc.aebn.cl");
+    if (!entrada) return;
+    try {
+      await loginToSolid(entrada);
+    } catch (err) {
+      console.error(err);
+      window.alert(`No se pudo conectar: ${err.message}`);
+    }
   };
 
   const disconnectFromSolid = async () => {

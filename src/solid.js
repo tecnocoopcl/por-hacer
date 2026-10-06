@@ -16,6 +16,8 @@ import {
   getStringNoLocale,
   getDatetime,
   getPodUrlAll,
+  getThing,
+  getUrlAll,
   removeThing,
   setThing,
 } from '@inrupt/solid-client';
@@ -141,7 +143,46 @@ function migrarDesdeApps(viejo, nuevo) {
   return migrada;
 }
 
-export async function loginToSolid(oidcIssuer) {
+const SOLID_OIDC_ISSUER = 'http://www.w3.org/ns/solid/terms#oidcIssuer';
+
+async function esProveedor(url) {
+  try {
+    const res = await fetch(`${url.replace(/\/+$/, '')}/.well-known/openid-configuration`);
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Lo que escribe el socio puede ser su WebID, la dirección de su pod o la de
+ * su proveedor de identidad. El login necesita la última: pasarle la del pod
+ * hace que busque `<pod>/.well-known/openid-configuration`, que no existe
+ * (401), y falla con "Client registration failed".
+ *
+ * - Un WebID (`…/profile/card#me`): el proveedor sale de `solid:oidcIssuer`.
+ * - Una URL que ya es proveedor: tal cual.
+ * - Si no, se prueba con el origen (en la cooperativa el proveedor es el
+ *   propio servidor de pods).
+ */
+export async function resolverProveedor(entrada) {
+  const valor = String(entrada ?? '').trim();
+  const url = new URL(valor.includes('://') ? valor : `https://${valor}`);
+  if (url.hash) {
+    const perfil = await getSolidDataset(url.href, { fetch: browserFetch });
+    const yo = getThing(perfil, url.href);
+    const [proveedor] = yo ? getUrlAll(yo, SOLID_OIDC_ISSUER) : [];
+    if (!proveedor) throw new Error('Ese WebID no declara un proveedor de identidad (solid:oidcIssuer).');
+    return proveedor;
+  }
+  url.search = '';
+  if (await esProveedor(url.href)) return url.href.replace(/\/+$/, '');
+  if (url.pathname !== '/' && (await esProveedor(url.origin))) return url.origin;
+  throw new Error(`No se encontró un proveedor de identidad en ${url.href}.`);
+}
+
+export async function loginToSolid(entrada) {
+  const oidcIssuer = await resolverProveedor(entrada);
   await login({
     oidcIssuer,
     redirectUrl: window.location.href,
