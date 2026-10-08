@@ -4,6 +4,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.3] — 2026-10-08
+
+### Fixed
+
+- Dentro de espacio, una escritura que el pod respondía con 205 Reset
+  Content (lo que hace Community Solid Server al modificar un recurso
+  existente) fallaba con «Response with null body status cannot have body»
+  y la sincronización quedaba en error, aunque el pod sí había guardado. Se
+  actualizó la copia de la SDK de espacio (`src/vendor/espacio-sdk/`), que
+  ahora trata 205 como respuesta sin cuerpo.
+
 ## [1.2.2] — 2026-10-06
 
 ### Fixed
