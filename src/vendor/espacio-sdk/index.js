@@ -130,8 +130,10 @@ export function buildApi(port, hello) {
       body && body.byteLength > 0 ? [body] : [],
     )
 
-    // 204 y 304 no admiten cuerpo: construir el Response con uno lanzaría.
-    const nullBody = result.status === 204 || result.status === 304 || result.status < 200
+    // 204, 205 y 304 no admiten cuerpo: construir el Response con uno lanzaría.
+    // El shell manda un ArrayBuffer vacío igual, y CSS responde 205 a un PUT
+    // que reemplaza un recurso: sin el 205, toda sobrescritura fallaba.
+    const nullBody = [204, 205, 304].includes(result.status) || result.status < 200
     const response = new Response(nullBody ? null : (result.body ?? null), {
       status: result.status,
       statusText: result.statusText,
