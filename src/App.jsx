@@ -4,6 +4,7 @@ import { SettingsModal } from './SettingsModal';
 import { WeekView } from './WeekView';
 import { toDayKey, parseDayKey, startOfWeek, addDays } from './dates';
 import {
+  anotarActividad,
   handleRedirectAfterLogin,
   loginToSolid,
   logoutFromSolid,
@@ -150,7 +151,10 @@ function App() {
 
     const { completedAt, archivedAt, ...rest } = task;
     const moved = { ...rest, state: toState };
-    if (toState === "done") moved.completedAt = new Date().toISOString();
+    if (toState === "done") {
+      moved.completedAt = new Date().toISOString();
+      anotarActividad("tareas-completadas");
+    }
     if (toState === "archived") moved.archivedAt = new Date().toISOString();
     if (toState === "active" && fromState === "archived") moved.scheduledFor = null;
 

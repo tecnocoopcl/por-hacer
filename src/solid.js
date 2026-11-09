@@ -77,6 +77,16 @@ export function isEmbedded() {
   return Boolean(window.__espacio);
 }
 
+/**
+ * Lo que se hace en Por Hacer, para «Lo que has hecho hoy» en el Inicio de
+ * espacio: la app etiqueta el evento (`tareas-completadas`, declarado en su
+ * manifiesto) y el shell solo lo suma. Suelta, o con un shell anterior a la
+ * SDK 0.3.0, no hace nada.
+ */
+export function anotarActividad(tipo, n = 1) {
+  window.__espacio?.actividad?.({ tipo, n }).catch(() => {});
+}
+
 export function confirmAction(message) {
   return provider().confirm(message);
 }
