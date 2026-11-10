@@ -24,7 +24,7 @@ export function WeekView({ tasks, weekStart, onPrev, onNext, onToday, onToggleDo
         <NavButton onClick={onPrev} label="Semana anterior">‹</NavButton>
         <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>{rangeLabel}</span>
         <NavButton onClick={onNext} label="Semana siguiente">›</NavButton>
-        <button onClick={onToday} style={{ marginLeft: "auto", background: "none", border: "1px solid #555", borderRadius: 16, color: "#fff", padding: "3px 12px", cursor: "pointer", fontSize: "0.8rem" }}>Hoy</button>
+        <button onClick={onToday} style={{ marginLeft: "auto", background: "none", border: "1px solid var(--esp-border)", borderRadius: 999, color: "var(--esp-text)", padding: "3px 12px", cursor: "pointer", fontSize: "0.8rem" }}>Hoy</button>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -34,16 +34,16 @@ export function WeekView({ tasks, weekStart, onPrev, onNext, onToday, onToggleDo
           const dayTasks = tasksFor(key);
           return (
             <div key={key} style={{
-              border: `1px solid ${isToday ? "#888" : "#3a3f4a"}`,
-              background: isToday ? "rgba(255,255,255,0.06)" : "transparent",
+              border: `1px solid ${isToday ? "var(--esp-accent)" : "var(--esp-border)"}`,
+              background: isToday ? "var(--esp-hover)" : "transparent",
               borderRadius: 8, padding: "0.5rem 0.7rem",
             }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.4rem", marginBottom: dayTasks.length ? "0.4rem" : 0 }}>
                 <span style={{ fontWeight: isToday ? 700 : 600, fontSize: "0.85rem", textTransform: "capitalize" }}>
                   {d.toLocaleDateString(undefined, { weekday: "long" })}
                 </span>
-                <span style={{ color: "#888", fontSize: "0.8rem" }}>{d.getDate()}</span>
-                {isToday && <span style={{ color: "#888", fontSize: "0.75rem" }}>· hoy</span>}
+                <span style={{ color: "var(--esp-text-muted)", fontSize: "0.8rem" }}>{d.getDate()}</span>
+                {isToday && <span style={{ color: "var(--esp-text-muted)", fontSize: "0.75rem" }}>· hoy</span>}
               </div>
               {dayTasks.map((task, idx) => (
                 <WeekTask
@@ -60,8 +60,8 @@ export function WeekView({ tasks, weekStart, onPrev, onNext, onToday, onToggleDo
           );
         })}
 
-        <div style={{ border: "1px dashed #3a3f4a", borderRadius: 8, padding: "0.5rem 0.7rem", marginTop: "0.4rem" }}>
-          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#aaa", marginBottom: unscheduled.length ? "0.4rem" : 0 }}>
+        <div style={{ border: "1px dashed var(--esp-border)", borderRadius: "var(--esp-radius-control)", padding: "0.5rem 0.7rem", marginTop: "0.4rem" }}>
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--esp-text-muted)", marginBottom: unscheduled.length ? "0.4rem" : 0 }}>
             Sin fecha ({unscheduled.length})
           </div>
           {unscheduled.map((task, idx) => (
@@ -92,12 +92,12 @@ function WeekTask({ task, overdue, onToggleDone, onEdit, onSchedule, getProjectL
             </span>
           )}
           {task.task}
-          {overdue && <span style={{ color: "#ef9a9a", fontSize: "0.72rem", marginLeft: "0.35rem" }}>atrasada</span>}
+          {overdue && <span style={{ color: "var(--esp-danger)", fontSize: "0.72rem", marginLeft: "0.35rem" }}>atrasada</span>}
         </span>
       </Checkbox>
       {task.scheduledFor && (
         <button onClick={() => onSchedule(task, null)} title="Quitar de la planificación"
-          style={{ background: "none", border: "none", color: "#777", cursor: "pointer", fontSize: "0.95rem", lineHeight: 1 }}>×</button>
+          style={{ background: "none", border: "none", color: "var(--esp-text-muted)", cursor: "pointer", fontSize: "0.95rem", lineHeight: 1 }}>×</button>
       )}
     </div>
   );
@@ -106,7 +106,7 @@ function WeekTask({ task, overdue, onToggleDone, onEdit, onSchedule, getProjectL
 function NavButton({ onClick, label, children }) {
   return (
     <button onClick={onClick} aria-label={label} style={{
-      background: "none", border: "1px solid #555", borderRadius: 6, color: "#fff",
+      background: "none", border: "1px solid var(--esp-border)", borderRadius: "var(--esp-radius-sm)", color: "var(--esp-text)",
       width: 28, height: 28, cursor: "pointer", fontSize: "1rem", lineHeight: 1,
     }}>{children}</button>
   );

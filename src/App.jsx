@@ -353,17 +353,16 @@ function App() {
               title="Planificar para (opcional)"
               style={{
                 background: "transparent",
-                color: "#fff",
-                border: "1px solid #555",
-                borderRadius: 4,
+                color: "var(--esp-text)",
+                border: "1px solid var(--esp-border-control)",
+                borderRadius: "var(--esp-radius-control)",
                 padding: "0.6rem 0.5rem",
                 fontSize: "0.9rem",
-                colorScheme: "dark",
               }}
             />
             {taskDate && (
               <button type="button" onClick={() => setTaskDate("")} title="Quitar fecha"
-                style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: "1.1rem", lineHeight: 1 }}>×</button>
+                style={{ background: "none", border: "none", color: "var(--esp-text-muted)", cursor: "pointer", fontSize: "1.1rem", lineHeight: 1 }}>×</button>
             )}
             {editTask && (
               <Button type="button" kind="tertiary" size="compact" onClick={resetForm}>Cancelar</Button>
@@ -417,7 +416,7 @@ function App() {
                             </span>
                           )}
                           {task.scheduledFor && <ScheduleChip dayKey={task.scheduledFor} today={today} />}
-                          <small style={{ color: "#888" }}>
+                          <small style={{ color: "var(--esp-text-muted)" }}>
                             ({formatDate(task.date)}) · {getDaysPending(task.date)}
                           </small>
                         </span>
@@ -455,7 +454,7 @@ function App() {
                                 {projLabel}
                               </span>
                             )}
-                            <small style={{ color: "#888", textDecoration: "line-through" }}>
+                            <small style={{ color: "var(--esp-text-muted)", textDecoration: "line-through" }}>
                               {getDaysDuration(task.date, task.completedAt)}
                             </small>
                           </span>
@@ -486,7 +485,7 @@ function App() {
                                 {projLabel}
                               </span>
                             )}
-                            <small style={{ color: "#888" }}>
+                            <small style={{ color: "var(--esp-text-muted)" }}>
                               Archivada el {formatDate(task.archivedAt ?? task.date)}
                             </small>
                           </span>
@@ -544,9 +543,9 @@ function ScheduleChip({ dayKey, today }) {
   return (
     <span style={{
       display: "inline-block", lineHeight: 1.4, fontSize: "0.75rem",
-      background: overdue ? "rgba(211,47,47,0.2)" : "rgba(255,255,255,0.12)",
-      color: overdue ? "#ef9a9a" : "#ddd",
-      border: `1px solid ${overdue ? "#8e3a3a" : "#555"}`,
+      background: overdue ? "color-mix(in srgb, var(--esp-danger) 16%, transparent)" : "var(--esp-hover-strong)",
+      color: overdue ? "var(--esp-danger)" : "var(--esp-text)",
+      border: `1px solid ${overdue ? "var(--esp-danger)" : "var(--esp-border)"}`,
       padding: "0px 8px", borderRadius: 10, fontWeight: 600, marginRight: "0.4rem",
     }}>
       {overdue ? `Atrasada · ${label}` : label}
@@ -568,8 +567,8 @@ function describeDay(dayKey, today) {
 function ViewTab({ label, active, onClick }) {
   return (
     <button onClick={onClick} style={{
-      border: "1px solid #555", borderRadius: 16, padding: "3px 14px", cursor: "pointer",
-      background: active ? "#fff" : "transparent", color: active ? "#1a1a1a" : "#fff",
+      border: `1px solid ${active ? "var(--esp-accent)" : "var(--esp-border)"}`, borderRadius: 999, padding: "3px 14px", cursor: "pointer",
+      background: active ? "var(--esp-accent)" : "transparent", color: active ? "var(--esp-accent-text)" : "var(--esp-text)",
       fontSize: "0.82rem", fontWeight: active ? 600 : 400,
     }}>{label}</button>
   );
@@ -577,7 +576,7 @@ function ViewTab({ label, active, onClick }) {
 
 function ProjectChip({ label, count, color, active, onClick, onDelete }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px 3px 10px", borderRadius: 16, border: "1px solid #555", background: active ? (color || "#fff") : "transparent", color: active ? "#1a1a1a" : "#fff", cursor: "pointer", fontSize: "0.82rem", fontWeight: active ? 600 : 400 }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px 3px 10px", borderRadius: 999, border: "1px solid var(--esp-border)", background: active ? (color || "var(--esp-accent)") : "transparent", color: active ? (color ? "#1a1a1a" : "var(--esp-accent-text)") : "var(--esp-text)", cursor: "pointer", fontSize: "0.82rem", fontWeight: active ? 600 : 400 }}>
       <span onClick={onClick}>
         {label}
         {count != null && <span style={{ marginLeft: "5px", opacity: 0.6, fontVariantNumeric: "tabular-nums" }}>{count}</span>}

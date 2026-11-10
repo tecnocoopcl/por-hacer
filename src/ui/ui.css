@@ -32,17 +32,17 @@
 }
 
 .ui-button--primary:hover:not(:disabled) {
-  background: #e2e2e2;
+  filter: brightness(1.08);
 }
 
 .ui-button--secondary {
-  background: var(--ui-hover);
+  background: transparent;
   color: var(--ui-text);
   border-color: var(--ui-border);
 }
 
 .ui-button--secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--esp-hover);
 }
 
 .ui-button--tertiary,
@@ -81,13 +81,12 @@
 .ui-textarea {
   width: 100%;
   box-sizing: border-box;
-  background: var(--ui-surface);
+  background: var(--esp-bg);
   color: var(--ui-text);
-  border: 1px solid transparent;
+  border: 1px solid var(--esp-border-control);
   border-radius: var(--ui-radius);
   padding: 0.6rem 0.75rem;
   font: inherit;
-  color-scheme: dark;
 }
 
 .ui-input::placeholder,
@@ -98,7 +97,8 @@
 .ui-input:focus,
 .ui-textarea:focus {
   outline: none;
-  border-color: var(--ui-border);
+  border-color: var(--esp-accent);
+  box-shadow: var(--esp-focus-ring);
 }
 
 .ui-textarea {
@@ -107,7 +107,7 @@
 }
 
 .ui-textarea--mono {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-family: var(--esp-mono);
   font-size: 0.78rem;
   min-height: 260px;
 }
@@ -170,9 +170,10 @@
   overflow: auto;
   background: var(--ui-surface);
   color: var(--ui-text);
-  border-radius: 8px;
+  border: 1px solid var(--esp-border);
+  border-radius: var(--esp-radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--esp-elev-3);
 }
 
 .ui-dialog__content:focus {
@@ -181,7 +182,8 @@
 
 .ui-dialog__title {
   margin: 0 0 1rem 0;
-  font-size: 1.3rem;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .ui-dialog__close {
@@ -214,14 +216,15 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background: var(--ui-surface);
-  border: 1px solid transparent;
+  background: var(--esp-bg);
+  border: 1px solid var(--esp-border-control);
   border-radius: var(--ui-radius);
   padding-right: 0.4rem;
 }
 
 .ui-select__control:focus-within {
-  border-color: var(--ui-border);
+  border-color: var(--esp-accent);
+  box-shadow: var(--esp-focus-ring);
 }
 
 .ui-select__input {
@@ -266,8 +269,8 @@
   border: 1px solid var(--ui-border-subtle);
   border-radius: var(--ui-radius);
   padding: 4px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-  z-index: 10;
+  box-shadow: var(--esp-elev-2);
+  z-index: var(--esp-z-flotante);
 }
 
 .ui-select__option {
@@ -281,7 +284,7 @@
   font: inherit;
   text-align: left;
   padding: 0.45rem 0.6rem;
-  border-radius: 4px;
+  border-radius: var(--esp-radius-sm);
   cursor: pointer;
 }
 

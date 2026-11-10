@@ -4,6 +4,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Por Hacer usa la paleta de espacio (ADR-034 de espacio) y tiene modo claro:
+  sigue al sistema fuera de espacio y, dentro, el tema que eligió el socio.
+  `--ui-*` son ahora alias de `--esp-*` (`tema.css`, SDK 0.4.0) y los estilos
+  en línea usan variables en vez de colores fijos.
+
 ## [1.2.3] — 2026-10-08
 
 ### Fixed

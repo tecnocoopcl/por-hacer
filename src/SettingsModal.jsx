@@ -106,7 +106,7 @@ export function SettingsModal({
             style={{
               width: '180px',
               flexShrink: 0,
-              borderRight: '1px solid #444',
+              borderRight: '1px solid var(--esp-border)',
               paddingRight: '0.75rem',
               display: 'flex',
               flexDirection: 'column',
@@ -120,12 +120,12 @@ export function SettingsModal({
                 style={{
                   textAlign: 'left',
                   border: 'none',
-                  borderRadius: 6,
+                  borderRadius: 'var(--esp-radius-sm)',
                   padding: '8px 10px',
                   cursor: 'pointer',
                   fontSize: '0.95rem',
-                  background: activeTab === tab.id ? 'rgba(255,255,255,0.12)' : 'transparent',
-                  color: activeTab === tab.id ? '#fff' : '#ccc',
+                  background: activeTab === tab.id ? 'var(--esp-selected)' : 'transparent',
+                  color: activeTab === tab.id ? 'var(--esp-text)' : 'var(--esp-text-muted)',
                   fontWeight: activeTab === tab.id ? 600 : 400,
                 }}
               >
@@ -140,7 +140,7 @@ export function SettingsModal({
                 <div>
                   <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem' }}>Proyectos existentes</h3>
                   {projects.length === 0 ? (
-                    <p style={{ color: '#888', fontSize: '0.9rem', margin: 0 }}>No hay proyectos creados.</p>
+                    <p style={{ color: 'var(--esp-text-muted)', fontSize: '0.9rem', margin: 0 }}>No hay proyectos creados.</p>
                   ) : (
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                       {projects.map(p => (
@@ -160,7 +160,7 @@ export function SettingsModal({
 
                 <div>
                   <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>Recuperar proyectos</h3>
-                  <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 0.75rem 0' }}>
+                  <p style={{ color: 'var(--esp-text-muted)', fontSize: '0.85rem', margin: '0 0 0.75rem 0' }}>
                     Busca tareas guardadas cuyo proyecto ya no existe y vuelve a crear ese proyecto a partir de la información guardada en cada tarea.
                   </p>
                   <Button onClick={rescueProjects} disabled={missingProjects.length === 0} size="compact">
@@ -200,14 +200,14 @@ export function SettingsModal({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
                   <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem' }}>Solid Pod</h3>
-                  <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 0.75rem 0' }}>
+                  <p style={{ color: 'var(--esp-text-muted)', fontSize: '0.85rem', margin: '0 0 0.75rem 0' }}>
                     Sincroniza tus tareas y proyectos con tu Pod Solid. La sincronización es manual: cada botón sobreescribe por completo un lado con el otro.
                   </p>
                   {!solidSession?.isLoggedIn ? (
                     <Button onClick={onConnectSolid} size="compact">Conectar con Solid Pod</Button>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <p style={{ color: '#888', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p style={{ color: 'var(--esp-text-muted)', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {embedded ? 'Tu sesión la gestiona espacio: ' : 'Conectado como '}{solidSession.webId}
                       </p>
                       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -219,10 +219,10 @@ export function SettingsModal({
                           <Button onClick={onLogoutSolid} size="compact" kind="tertiary">Cerrar sesión</Button>
                         )}
                       </div>
-                      {syncStatus === 'syncing' && <p style={{ color: '#888', fontSize: '0.85rem', margin: 0 }}>Sincronizando…</p>}
-                      {syncStatus === 'success' && <p style={{ color: '#8bc98b', fontSize: '0.85rem', margin: 0 }}>✓ Sincronizado</p>}
-                      {syncStatus === 'conflict' && <p style={{ color: '#e8c07d', fontSize: '0.85rem', margin: 0 }}>El Pod cambió desde la última lectura. Baja los datos primero para no perder lo de otro dispositivo.</p>}
-                      {syncStatus === 'error' && <p style={{ color: '#ef9a9a', fontSize: '0.85rem', margin: 0 }}>Error al sincronizar (ver consola)</p>}
+                      {syncStatus === 'syncing' && <p style={{ color: 'var(--esp-text-muted)', fontSize: '0.85rem', margin: 0 }}>Sincronizando…</p>}
+                      {syncStatus === 'success' && <p style={{ color: 'var(--esp-ok)', fontSize: '0.85rem', margin: 0 }}>✓ Sincronizado</p>}
+                      {syncStatus === 'conflict' && <p style={{ color: 'var(--esp-warn)', fontSize: '0.85rem', margin: 0 }}>El Pod cambió desde la última lectura. Baja los datos primero para no perder lo de otro dispositivo.</p>}
+                      {syncStatus === 'error' && <p style={{ color: 'var(--esp-danger)', fontSize: '0.85rem', margin: 0 }}>Error al sincronizar (ver consola)</p>}
                     </div>
                   )}
                 </div>

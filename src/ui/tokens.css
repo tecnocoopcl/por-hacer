@@ -1,17 +1,24 @@
-:root {
-  --ui-bg: #282c34;
-  --ui-surface: #30343d;
-  --ui-border: #555;
-  --ui-border-subtle: #3a3f4a;
-  --ui-text: #fff;
-  --ui-text-muted: #888;
-  --ui-text-dim: #ccc;
-  --ui-accent: #fff;
-  --ui-accent-contrast: #1a1a1a;
-  --ui-danger: #d32f2f;
-  --ui-overlay: rgba(0, 0, 0, 0.6);
-  --ui-hover: rgba(255, 255, 255, 0.12);
+/*
+ * Los tokens propios de Por Hacer, ahora alias del tema de espacio (ADR-034 de
+ * espacio): la misma paleta en claro y oscuro que el shell. Fuera de espacio
+ * sigue al sistema; dentro, la SDK aplica el tema que eligió el socio.
+ */
+@import '../vendor/espacio-sdk/tema.css';
 
-  --ui-radius: 6px;
-  --ui-radius-pill: 16px;
+:root {
+  --ui-bg: var(--esp-bg);
+  --ui-surface: var(--esp-bg-elevated);
+  --ui-border: var(--esp-border-control);
+  --ui-border-subtle: var(--esp-border);
+  --ui-text: var(--esp-text);
+  --ui-text-muted: var(--esp-text-muted);
+  --ui-text-dim: var(--esp-text-muted);
+  --ui-accent: var(--esp-accent);
+  --ui-accent-contrast: var(--esp-accent-text);
+  --ui-danger: var(--esp-danger);
+  --ui-overlay: rgb(0 0 0 / 0.45);
+  --ui-hover: var(--esp-hover-strong);
+
+  --ui-radius: var(--esp-radius-control);
+  --ui-radius-pill: 999px;
 }
