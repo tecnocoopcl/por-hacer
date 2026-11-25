@@ -208,7 +208,7 @@ function App() {
     // window.prompt devolvería null en silencio porque el iframe no tiene
     // allow-modals. El botón ni siquiera se muestra (ver SettingsModal).
     if (isEmbedded()) return;
-    const entrada = window.prompt("Tu WebID, tu Solid Pod o tu proveedor de identidad:", "https://pods-rpi-tc.aebn.cl");
+    const entrada = window.prompt("Tu WebID, tu Solid Pod o tu proveedor de identidad:", "https://pods.tecnocooperativa.cl");
     if (!entrada) return;
     try {
       await loginToSolid(entrada);

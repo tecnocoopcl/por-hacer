@@ -35,7 +35,7 @@ const POR_HACER_ARCHIVED_AT = POR_HACER + 'archivedAt';
 /**
  * Por Hacer funciona de dos maneras, y esta es la frontera entre ambas.
  *
- * - **Suelta**, en por-hacer.aebn.cl: gestiona su propia sesión Solid con
+ * - **Suelta**, en por-hacer.tecnocooperativa.cl: gestiona su propia sesión Solid con
  *   solid-client-authn-browser, como hasta ahora.
  * - **Dentro de espacio**: el escritorio ya tiene la sesión del socio y presta
  *   un `fetch` autenticado, acotado a la carpeta de esta app en su pod. No hay
@@ -96,7 +96,7 @@ export function confirmAction(message) {
  *
  * Antes esto concatenaba '/por-hacer-app/data/' al origen del WebID. Funcionaba
  * por coincidencia, mientras el pod se llamaba igual que la app: con un WebID
- * como .../usuario-aebn/profile/card#me escribía en el pod de OTRO, no en el del
+ * como .../aebn/profile/card#me escribía en el pod de OTRO, no en el del
  * socio. Ahora se resuelve por pim:storage, que es lo que dice dónde vive el pod.
  */
 export async function podDataContainerUrl(webId) {

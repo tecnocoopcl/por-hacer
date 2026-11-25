@@ -3,7 +3,7 @@
 Aplicativo para gestionar una lista de tareas por hacer, con vista de lista y
 vista semanal. Construido con React, Vite y Radix.
 
-Publicado en https://por-hacer.aebn.cl
+Publicado en https://por-hacer.tecnocooperativa.cl
 
 ## Requisitos
 
@@ -33,7 +33,7 @@ El servidor de desarrollo queda en http://localhost:5173
 El despliegue es automático: `.github/workflows/deploy.yml` compila y publica
 `dist/` en GitHub Pages en cada push a `main`, usando el origen "GitHub
 Actions" de Pages (Settings → Pages → Build and deployment → Source). El
-archivo `public/CNAME` fija el dominio `por-hacer.aebn.cl`, por lo que el
+archivo `public/CNAME` fija el dominio `por-hacer.tecnocooperativa.cl`, por lo que el
 subdominio debe apuntar por CNAME a `tecnocoopcl.github.io`.
 
 `.github/workflows/ci.yml` corre lint y build en cada Pull Request.
