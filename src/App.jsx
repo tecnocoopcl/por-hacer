@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { hayCambios, mezclar, normalizarProyecto, normalizarTarea } from './mezcla';
 import { Button, Input, Checkbox, CategorySelect, colorForCategoria } from './ui';
 import { SettingsModal } from './SettingsModal';
 import { WeekView } from './WeekView';
@@ -16,6 +17,7 @@ import {
   saveTasksToPod,
   fetchProjectsFromPod,
   saveProjectsToPod,
+  sincronizarConPod,
 } from './solid';
 import './App.css';
 
@@ -52,6 +54,92 @@ function App() {
   useEffect(() => {
     handleRedirectAfterLogin().then(setSolidSession);
   }, []);
+
+  // --- Dentro de espacio: sincronización sola con el Pod, mezclando por id ---
+  // `base` es lo que había en el Pod la última vez; con eso se sabe qué cambió
+  // aquí (y se aplica sobre el Pod) y qué cambió allá (y se trae).
+  const embebida = isEmbedded();
+  const baseRef = useRef(leerBase());
+  const ultimoRef = useRef({ tareas: [], proyectos: [], sesion: solidSession });
+  useLayoutEffect(() => {
+    ultimoRef.current = { tareas: [...activeTasks, ...doneTasks, ...archivedTasks], proyectos: projects, sesion: solidSession };
+  });
+  const enCurso = useRef(false);
+  const otraVez = useRef(false);
+
+  /** Pone en la vista lo que quedó, conservando los objetos que no cambiaron (editar los compara por identidad). */
+  const aplicar = useCallback((tareas, proyectos) => {
+    const previas = new Map(ultimoRef.current.tareas.map(t => [t.id, t]));
+    const lista = tareas.map(t => {
+      const previa = previas.get(t.id);
+      return previa && JSON.stringify(normalizarTarea(previa)) === JSON.stringify(t) ? previa : t;
+    });
+    if (hayCambios(ultimoRef.current.tareas.map(normalizarTarea), tareas)) {
+      setActiveTasks(lista.filter(t => t.state !== "done" && t.state !== "archived"));
+      setDoneTasks(lista.filter(t => t.state === "done"));
+      setArchivedTasks(lista.filter(t => t.state === "archived"));
+    }
+    if (hayCambios(ultimoRef.current.proyectos.map(normalizarProyecto), proyectos, p => p.id)) {
+      const previos = new Map(ultimoRef.current.proyectos.map(p => [p.id, p]));
+      setProjects(proyectos.map(p => ({ ...previos.get(p.id), ...p, uuid: p.uuid ?? previos.get(p.id)?.uuid ?? crypto.randomUUID() })));
+    }
+  }, []);
+
+  const sincronizar = useCallback(async () => {
+    const { sesion } = ultimoRef.current;
+    if (!embebida || !sesion.isLoggedIn || !sesion.webId) return;
+    if (enCurso.current) { otraVez.current = true; return; }
+    enCurso.current = true;
+    const enviado = {
+      tareas: ultimoRef.current.tareas.map(normalizarTarea),
+      proyectos: ultimoRef.current.proyectos.map(normalizarProyecto),
+    };
+    try {
+      const containerUrl = await podDataContainerUrl(sesion.webId);
+      const pod = await sincronizarConPod(containerUrl, { ...enviado, base: baseRef.current });
+      baseRef.current = pod;
+      guardarBase(pod);
+      // Lo que se cambió aquí mientras se sincronizaba se aplica sobre lo que quedó.
+      const tareas = mezclar(enviado.tareas, ultimoRef.current.tareas.map(normalizarTarea), pod.tareas);
+      const proyectos = mezclar(enviado.proyectos, ultimoRef.current.proyectos.map(normalizarProyecto), pod.proyectos, p => p.id);
+      aplicar(tareas, proyectos);
+      setSyncStatus("success");
+    } catch (err) {
+      console.error(err);
+      setSyncStatus("error");
+    } finally {
+      enCurso.current = false;
+      if (otraVez.current) {
+        otraVez.current = false;
+        void sincronizar();
+      }
+    }
+  }, [embebida, aplicar]);
+
+  // Al entrar, al volver a la ventana y cada tanto, se trae lo del Pod.
+  useEffect(() => {
+    if (!embebida || !solidSession.isLoggedIn) return;
+    void sincronizar();
+    const alVolver = () => { if (!document.hidden) void sincronizar(); };
+    window.addEventListener("focus", alVolver);
+    document.addEventListener("visibilitychange", alVolver);
+    const intervalo = setInterval(alVolver, 30_000);
+    return () => {
+      window.removeEventListener("focus", alVolver);
+      document.removeEventListener("visibilitychange", alVolver);
+      clearInterval(intervalo);
+    };
+  }, [embebida, solidSession.isLoggedIn, sincronizar]);
+
+  // Lo que cambia aquí sube al rato.
+  useEffect(() => {
+    if (!embebida || !solidSession.isLoggedIn) return;
+    const base = baseRef.current;
+    const tareas = [...activeTasks, ...doneTasks, ...archivedTasks].map(normalizarTarea);
+    if (!hayCambios(base?.tareas ?? null, tareas) && !hayCambios(base?.proyectos ?? null, projects.map(normalizarProyecto), p => p.id)) return;
+    const t = setTimeout(() => void sincronizar(), 800);
+    return () => clearTimeout(t);
+  }, [embebida, solidSession.isLoggedIn, activeTasks, doneTasks, archivedTasks, projects, sincronizar]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -528,6 +616,18 @@ function App() {
       />
     </div>
   );
+}
+
+/** Lo que había en el Pod en la última sincronización de este equipo (solo dentro de espacio). */
+function leerBase() {
+  try {
+    const base = JSON.parse(localStorage.getItem("pod-base"));
+    return base && Array.isArray(base.tareas) && Array.isArray(base.proyectos) ? base : null;
+  } catch { return null; }
+}
+
+function guardarBase(base) {
+  try { localStorage.setItem("pod-base", JSON.stringify(base)); } catch { /* sin espacio: se mezcla sin base la próxima vez */ }
 }
 
 function loadTasks(predicate) {

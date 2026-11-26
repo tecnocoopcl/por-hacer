@@ -21,6 +21,7 @@ import {
   removeThing,
   setThing,
 } from '@inrupt/solid-client';
+import { hayCambios, mezclar, normalizarProyecto, normalizarTarea } from './mezcla';
 
 const SCHEMA_NAME = 'https://schema.org/name';
 const SCHEMA_DATE_CREATED = 'https://schema.org/dateCreated';
@@ -262,7 +263,8 @@ async function saveConditionally(url, dataset) {
   try {
     await saveSolidDatasetAt(url, dataset, { fetch: provider().fetch });
   } catch (err) {
-    if (err.statusCode === 412) throw new PodConflictError(url);
+    // 412 si el ETag no calza; 409 si el PATCH quería borrar algo que ya no está.
+    if (err.statusCode === 412 || err.statusCode === 409) throw new PodConflictError(url);
     throw err;
   }
 }
@@ -283,9 +285,24 @@ export async function fetchTasksFromPod(containerUrl) {
     if (err.statusCode === 404) return [];
     throw err;
   }
+  return tareasDe(dataset);
+}
+
+/**
+ * El id de una tarea o proyecto es el nombre de su Thing en el Pod
+ * (`#task-<id>`, `#project-<uuid>`). Antes no se leía de vuelta y bajar del Pod
+ * les daba ids nuevos: con eso no se podía mezclar por id.
+ */
+const idDe = (thing, prefijo) => {
+  const nombre = decodeURIComponent(thing.url.split('#')[1] ?? '');
+  return nombre.startsWith(prefijo) ? nombre.slice(prefijo.length) : nombre || crypto.randomUUID();
+};
+
+function tareasDe(dataset) {
   return getThingAll(dataset).map(thing => {
     const state = getStringNoLocale(thing, POR_HACER_STATE) ?? 'active';
     const task = {
+      id: idDe(thing, 'task-'),
       date: getDatetime(thing, SCHEMA_DATE_CREATED)?.toISOString() ?? new Date().toISOString(),
       state,
       task: getStringNoLocale(thing, SCHEMA_NAME) ?? '',
@@ -309,7 +326,11 @@ export async function saveTasksToPod(containerUrl, tasks) {
   requireLoggedIn();
   await ensureContainer(containerUrl);
   const url = containerUrl + 'tasks.ttl';
-  let dataset = await loadForWrite(url);
+  await saveConditionally(url, conTareas(await loadForWrite(url), tasks));
+}
+
+function conTareas(dataset, tasks) {
+  dataset = getThingAll(dataset).reduce((acc, thing) => removeThing(acc, thing), dataset);
   tasks.forEach((t, i) => {
     let builder = buildThing(createThing({ name: 'task-' + (t.id ?? i) }))
       .setDatetime(SCHEMA_DATE_CREATED, new Date(t.date))
@@ -321,7 +342,7 @@ export async function saveTasksToPod(containerUrl, tasks) {
     if (t.state === 'archived' && t.archivedAt) builder = builder.setDatetime(POR_HACER_ARCHIVED_AT, new Date(t.archivedAt));
     dataset = setThing(dataset, builder.build());
   });
-  await saveConditionally(url, dataset);
+  return dataset;
 }
 
 export async function fetchProjectsFromPod(containerUrl) {
@@ -334,9 +355,14 @@ export async function fetchProjectsFromPod(containerUrl) {
     if (err.statusCode === 404) return [];
     throw err;
   }
+  return proyectosDe(dataset);
+}
+
+function proyectosDe(dataset) {
   return getThingAll(dataset).map(thing => ({
     id: getStringNoLocale(thing, POR_HACER_PROJECT_SLUG) ?? '',
     label: getStringNoLocale(thing, SCHEMA_NAME) ?? '',
+    uuid: idDe(thing, 'project-'),
   }));
 }
 
@@ -344,7 +370,11 @@ export async function saveProjectsToPod(containerUrl, projects) {
   requireLoggedIn();
   await ensureContainer(containerUrl);
   const url = containerUrl + 'projects.ttl';
-  let dataset = await loadForWrite(url);
+  await saveConditionally(url, conProyectos(await loadForWrite(url), projects));
+}
+
+function conProyectos(dataset, projects) {
+  dataset = getThingAll(dataset).reduce((acc, thing) => removeThing(acc, thing), dataset);
   projects.forEach((p, i) => {
     const thing = buildThing(createThing({ name: 'project-' + (p.uuid ?? i) }))
       .setStringNoLocale(POR_HACER_PROJECT_SLUG, p.id)
@@ -352,5 +382,51 @@ export async function saveProjectsToPod(containerUrl, projects) {
       .build();
     dataset = setThing(dataset, thing);
   });
-  await saveConditionally(url, dataset);
+  return dataset;
+}
+
+/**
+ * Dentro de espacio, Por Hacer se sincroniza sola: mezcla por id lo que
+ * cambió aquí desde la última vez (`base`) con lo que hay en el Pod, y guarda
+ * con If-Match. Si el Pod cambió entremedio (412), vuelve a leer y a mezclar.
+ * Así lo que agrega otro equipo o un asistente de espacio no se pierde.
+ *
+ * @returns {Promise<{ tareas: object[], proyectos: object[] }>} lo que quedó en el Pod, que pasa a ser la base
+ */
+export async function sincronizarConPod(containerUrl, { tareas, proyectos, base }) {
+  requireLoggedIn();
+  await ensureContainer(containerUrl);
+  const local = { tareas: tareas.map(normalizarTarea), proyectos: proyectos.map(normalizarProyecto) };
+  const archivos = [
+    ['tareas', 'tasks.ttl', tareasDe, conTareas, (x) => x.id],
+    ['proyectos', 'projects.ttl', proyectosDe, conProyectos, (x) => x.id],
+  ];
+  const resultado = {};
+  for (const [clave, nombre, leer, escribir, id] of archivos) {
+    const url = containerUrl + nombre;
+    for (let intento = 0; ; intento++) {
+      let dataset;
+      try {
+        dataset = await getSolidDataset(url, { fetch: provider().fetch });
+      } catch (err) {
+        if (err.statusCode !== 404) throw err;
+        dataset = createSolidDataset();
+      }
+      const normalizar = clave === 'tareas' ? normalizarTarea : normalizarProyecto;
+      const remoto = leer(dataset).map(normalizar);
+      const mezcla = mezclar(base?.[clave] ?? null, local[clave], remoto, id);
+      if (!hayCambios(remoto, mezcla, id)) {
+        resultado[clave] = remoto;
+        break;
+      }
+      try {
+        await saveConditionally(url, escribir(dataset, mezcla));
+        resultado[clave] = mezcla;
+        break;
+      } catch (err) {
+        if (!(err instanceof PodConflictError) || intento >= 2) throw err;
+      }
+    }
+  }
+  return resultado;
 }

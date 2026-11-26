@@ -4,6 +4,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Dentro de espacio, Por Hacer se sincroniza sola con el Pod: al abrirla, al
+  volver a la ventana, cada 30 s y poco después de cada cambio. Mezcla por id
+  lo que cambió aquí desde la última sincronización con lo que hay en el Pod
+  (`src/mezcla.js`), y guarda con If-Match, releyendo si el Pod cambió
+  entremedio. Así lo que agrega otro equipo o un asistente de espacio (el MCP
+  de espacio) no se pierde. Dentro de espacio ya no se muestran «Subir al Pod»
+  ni «Bajar del Pod», que reemplazaban un lado entero con el otro.
+
+### Fixed
+
+- Bajar del Pod les daba ids nuevos a las tareas y proyectos: ahora se leen
+  del nombre de cada uno en el Pod (`#task-<id>`, `#project-<uuid>`).
+- Un PATCH rechazado con 409 también cuenta como conflicto, no como error.
+
 ### Changed
 
 - Por Hacer usa la paleta de espacio (ADR-034 de espacio) y tiene modo claro:

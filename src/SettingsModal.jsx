@@ -201,7 +201,9 @@ export function SettingsModal({
                 <div>
                   <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem' }}>Solid Pod</h3>
                   <p style={{ color: 'var(--esp-text-muted)', fontSize: '0.85rem', margin: '0 0 0.75rem 0' }}>
-                    Sincroniza tus tareas y proyectos con tu Pod Solid. La sincronización es manual: cada botón sobreescribe por completo un lado con el otro.
+                    {embedded
+                      ? 'Dentro de espacio, tus tareas y proyectos se sincronizan solos con tu Pod: lo que cambies aquí, en otro equipo o con un asistente se junta sin pisarse.'
+                      : 'Sincroniza tus tareas y proyectos con tu Pod Solid. La sincronización es manual: cada botón sobreescribe por completo un lado con el otro.'}
                   </p>
                   {!solidSession?.isLoggedIn ? (
                     <Button onClick={onConnectSolid} size="compact">Conectar con Solid Pod</Button>
@@ -211,8 +213,14 @@ export function SettingsModal({
                         {embedded ? 'Tu sesión la gestiona espacio: ' : 'Conectado como '}{solidSession.webId}
                       </p>
                       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <Button onClick={onUploadToPod} size="compact" disabled={syncStatus === 'syncing'}>Subir al Pod</Button>
-                        <Button onClick={onDownloadFromPod} size="compact" kind="secondary" disabled={syncStatus === 'syncing'}>Bajar del Pod</Button>
+                        {/* Dentro de espacio se sincroniza sola: reemplazar un lado
+                            entero con el otro borraría lo que agregó otro equipo. */}
+                        {!embedded && (
+                          <>
+                            <Button onClick={onUploadToPod} size="compact" disabled={syncStatus === 'syncing'}>Subir al Pod</Button>
+                            <Button onClick={onDownloadFromPod} size="compact" kind="secondary" disabled={syncStatus === 'syncing'}>Bajar del Pod</Button>
+                          </>
+                        )}
                         {/* Dentro de espacio la sesión no es nuestra: cerrarla es
                             cosa del escritorio, no de una de sus aplicaciones. */}
                         {!embedded && (
